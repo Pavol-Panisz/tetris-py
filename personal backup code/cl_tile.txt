@@ -1,0 +1,162 @@
+import globals
+o = globals.o
+x = globals.x
+p = globals.p
+d = globals.d
+
+class Tile():
+    width: int = 0
+    height: int = 0
+    tile = [[x,x,x],
+            [o,o,x],
+            [o,p,x]]
+    pivotX = 0
+    pivotY = 0
+
+    rotTile = None
+    rotation = 0
+    rPivotX = 0
+    rPivotY = 0
+
+    def __init__(self, *inp): #inp's a tuple of lists
+
+        #inp's a tuple, which is unchangeable, so copy its members to a 2D list
+        self.tile = [o] * len(inp)
+        for yyy in range(0,len(inp)):
+            self.tile[yyy] = inp[yyy]
+        
+        self.setHeightWidth()
+            
+        pDict = self.findPivot(self.tile)
+        self.pivotX = pDict['x']
+        self.pivotY = pDict['y']
+
+        self.initRotTile()
+        pass
+
+    def setHeightWidth(self):
+        self.height = len(self.tile)
+        self.width = len(self.tile[0])
+        pass
+        
+    def findPivot(self, buffer):
+        height = len(buffer)
+        width = len(buffer[0])
+
+        results = {'y':0, 'x':0}
+        for yyy in range(0,height):
+            for xxx in range(0,width):
+                if globals.isInList(buffer[yyy][xxx], globals.pivotList):
+                    results['y'] = yyy
+                    results['x'] = xxx
+        return results
+
+    def initRotTile(self):
+        n = 0
+        if self.height > self.width:
+            n = self.height
+        else:
+            n = self.width
+        self.rotTile = n*[o]
+        for iii in range(0,n):
+            self.rotTile[iii] = n*[o]
+
+    def clrRotTile(self):
+        for yyy in range(0,len(self.rotTile)):
+            for xxx in range(0,len(self.rotTile[0])):
+                self.rotTile[yyy][xxx] = o
+        pass
+
+    def findRotTilePivot(self):
+
+        results = self.findPivot(self.rotTile)
+        self.rPivotY = results['y']
+        self.rPivotX = results['x']
+        pass
+
+    def rotate(self, deg):
+        #constrain the rotation between 0 and 360
+        self.rotation %= 360
+        deg %= 360
+        
+        width = self.width #tile's width
+        height = self.height #tile's height
+
+        tY = 0 #the destination of the currently read cell
+        tX = 0
+
+        self.clrRotTile()
+        print(deg)
+        
+        if deg == 0:
+            for yyy in range(0,height):
+                for xxx in range(0,width):
+                    self.rotTile[yyy][xxx] = self.tile[yyy][xxx]
+            pass
+        
+        if deg == 90:
+            for xxx in range(width-1,-1,-1):
+                for yyy in range(0,height):
+                    self.rotTile[tY][tX] = self.tile[yyy][xxx]
+                    tX+=1
+                tY+=1
+                tX=0
+            pass
+
+        if deg == 180:
+            for yyy in range(height-1,-1,-1):
+                for xxx in range(width-1,-1,-1):
+                    self.rotTile[tY][tX] = self.tile[yyy][xxx]
+                    tX+=1
+                tY+=1
+                tX=0
+            pass
+        
+        if deg == 270:
+            for xxx in range(0,width):
+                for yyy in range(height-1,-1,-1):
+                    self.rotTile[tY][tX] = self.tile[yyy][xxx]
+                    tX +=1
+                tY+=1
+                tX=0
+            pass
+
+    pass #end of Tile class
+
+#tests
+if __name__ == "__main__":
+    tileT = Tile([o,x,o],
+                 [x,p,x])
+    tileT.rotation = 0
+    tileT.rotate(tileT.rotation)
+
+    for el in tileT.rotTile:
+        print(el)
+
+    tileT.rotation = 90
+    tileT.rotate(tileT.rotation)
+
+    for el in tileT.rotTile:
+        print(el)
+
+    tileT.rotation = 180
+    tileT.rotate(tileT.rotation)
+
+    for el in tileT.rotTile:
+        print(el)
+
+    tileT.rotation = 270
+    tileT.rotate(tileT.rotation)
+
+    for el in tileT.rotTile:
+        print(el)
+
+    tileT.rotation = 0
+    tileT.rotate(tileT.rotation)
+
+    for el in tileT.rotTile:
+        print(el)
+
+
+    
+

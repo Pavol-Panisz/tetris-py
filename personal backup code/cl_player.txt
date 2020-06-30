@@ -1,0 +1,136 @@
+from random import randint
+import globals
+import cl_screen
+import cl_tile
+
+x = globals.x
+o = globals.o
+p = globals.p
+d = globals.d
+
+class Player():
+    name: str
+
+    scrX = 0 #pivot x in the screen buffer
+    scrY = 0 #pivot y -||-
+
+    y = 0 #the actual y value: cca between 0 and scrHeight * precision
+    
+    fallSpeed = 0.05 #cells per second
+    
+    assignedScr: cl_screen.Screen(0,0) #the screen buffer
+    assignedTile: cl_tile.Tile([x],[p],[x]) #currently controlled tile
+    assignedScr = None
+    assignedTile = None
+
+    isColliding = False
+
+    tileList = None
+
+    def __init__(self, nam="NoName", scr=None):
+        self.setName(nam)
+        self.assignedScr = scr
+        if scr==None:
+            errMsg = "No screen component attached to player: "
+            errMsg += self.name
+            globals.sequentialWrite1(errMsg)
+        pass
+
+    def setName(self, n: str):
+        n = n[slice(globals.nameLength)]
+        n += (globals.nameLength-len(n)) * "_"
+        self.name = n
+        pass
+
+    def setFallSpeed(self, i):
+        self.fallSpeed = i
+        pass
+
+    def assignTile(self, t):
+        self.assignedTile = t
+
+    def assignRandTile(self):
+        self.assignTile(self.tileList[randint(0,len(self.tileList)-1)])
+        self.setTileDefaults()
+        pass
+
+    def setTileDefaults(self):
+        self.scrY = self.assignedScr.spawnY
+        self.scrX = self.assignedScr.spawnX
+        self.y = self.scrY * globals.precision
+        pass
+
+    #convert y (e.g. 1 500 000 to scrY: 1)
+    def y2scrY(self): 
+        self.scrY = self.y // globals.precision
+        #y gets updated in main
+        pass
+        
+
+    #executes func for each cell of the rotTile positioned in the scrBuffer
+    def loopScrTile(self, func):
+        self.assignedTile.findRotTilePivot()
+        
+
+        
+        
+        for yyy in range(0,len(self.assignedTile.rotTile)):
+            for xxx in range(0,len(self.assignedTile.rotTile[0])):
+                
+                xOffFromPiv = xxx - self.assignedTile.rPivotX
+                cX = self.scrX + xOffFromPiv #current x in self.assignedScr.scrBuffer
+
+                yOffFromPiv = yyy - self.assignedTile.rPivotY
+                cY = self.scrY + yOffFromPiv #current y in self.assignedScr.scrBuffer
+
+                func(int(cY), int(cX), yyy, xxx)
+                #int() is necessary since cY and cX can become for example 2.0
+
+        pass
+
+    #put the p1.assignedTile.rotTile cell into the screenBuffer
+    def putRotTileToScr(self, aY, aX, bY, bX):
+        if self.assignedTile.rotTile[bY][bX] != o:
+            self.assignedScr.scrBuffer[aY][aX] = self.assignedTile.rotTile[bY][bX]
+        pass
+
+    #delete previous on screen tile from the screen buffer
+    def dltScrTile(self, cY, cX, yyy, xxx):
+        if self.assignedScr.scrBuffer[cY][cX] == self.assignedTile.rotTile[yyy][xxx]:
+            self.assignedScr.scrBuffer[cY][cX] = o
+    pass
+
+    #always check for collision BEFORE putting the rotTile into the scrBuffer
+    def checkCollision(self, cY, cX, yyy, xxx):
+        if self.isColliding == False:
+            #if it isn't an empty space
+            if globals.isInList(self.assignedTile.rotTile[yyy][xxx], globals.wallList)==True:
+                if globals.isInList(self.assignedScr.scrBuffer[cY][cX], globals.wallList)==True:
+                    self.isColliding = True
+        pass
+
+    def collisionDown(self):
+        self.setTileDefaults()
+        self.isColliding = False
+        #self.assignRandTile()
+        self.setTileDefaults()
+
+        
+        
+        pass
+
+    def assignTileList(self, tiles):
+        self.tileList = tiles
+        pass
+
+    pass
+
+    
+
+
+
+        
+    
+    
+    
+

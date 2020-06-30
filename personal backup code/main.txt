@@ -1,0 +1,178 @@
+from random import randint #for RNG
+from time import perf_counter #for accessing time
+from msvcrt import getwch, kbhit #for getting keyboard input
+
+import globals
+import cl_player
+import cl_screen
+import cl_tile
+
+o = globals.o
+x = globals.x
+p = globals.p
+d = globals.d
+
+scr1 = cl_screen.Screen(26,12)
+
+p1 = cl_player.Player("NoName", scr1)
+
+tileT = cl_tile.Tile([x,p,x],
+                     [o,x,o])
+tileU = cl_tile.Tile([x,d,x], #for showcasing an empty pivot
+                     [x,x,x])
+tileI = cl_tile.Tile([x],
+                     [p],
+                     [x],
+                     [x])
+
+tileS = cl_tile.Tile([o,x],
+                [p,x],
+                [x,o])
+tileIS = cl_tile.Tile([x,o],
+                      [x,p],
+                      [o,x])
+tileL = cl_tile.Tile([x,o],
+                [x,o],
+                [p,x])
+tileIL = cl_tile.Tile([o,x],
+                 [o,x],
+                 [x,p])
+
+p1.tileList = [tileT, tileI, tileS, tileIS, tileL, tileIL]
+p1.assignRandTile()
+p1.assignedTile.rotate(0)
+
+wasDPNow = False #was down pressed this frame
+wasDPPrev = False #was down pressed last frame
+doBreakMomentum = False
+
+#game loop
+inp = ' ' #DEBUG - break momentum
+
+while True:
+
+    if not kbhit():
+        inp = None
+        
+    if kbhit():
+        inp = getwch()
+        p1.loopScrTile(p1.dltScrTile)
+
+        if inp == globals.rotate:
+            p1.assignedTile.rotation += 90
+            p1.assignedTile.rotate(p1.assignedTile.rotation)
+            #if no col, keep rot. else, rot -=90.
+            p1.loopScrTile(p1.checkCollision)
+            p1.doScrUpdate = True
+
+            if p1.isColliding == True:
+                p1.assignedTile.rotation -= 90
+                p1.assignedTile.rotate(p1.assignedTile.rotation)
+                p1.isColliding = False
+                p1.doScrUpdate = False
+
+
+        if inp == globals.down:
+            wasDPNow = True
+
+            if wasDPPrev == True and wasDPNow == True and p1.wasAssignedNew == True:
+                p1.doBreakMomentum = True
+            else:
+                p1.doBreakMomentum = False
+
+            if p1.doBreakMomentum == False:
+            
+                prevScrY = p1.scrY
+            
+                p1.y += globals.precision #move 1 line down
+                p1.y2scrY()
+
+                if prevScrY != p1.scrY:
+                    p1.doScrUpdate = True
+
+                    p1.loopScrTile(p1.checkCollision)
+                    if p1.isColliding == True:
+                        p1.collisionDown()
+
+                p1.wasAssignedNew = False
+
+        if inp != globals.down:
+            wasDPNow = False
+
+        wasDPPrev = wasDPNow
+            
+                
+
+        if ((inp == globals.left) or (inp == globals.right)):
+            prevX = p1.scrX
+            
+            if inp == globals.left:
+                p1.scrX -= 1
+            if inp == globals.right:
+                p1.scrX += 1
+
+            p1.loopScrTile(p1.checkCollision)
+            if p1.isColliding == True:
+                p1.scrX = prevX
+                p1.isColliding = False
+
+            else:
+                p1.doScrUpdate = True
+
+        
+
+    prevScrY = p1.scrY
+
+    p1.loopScrTile(p1.dltScrTile)
+    p1.y += int(globals.precision * p1.fallSpeed * globals.deltaTime)
+    p1.y2scrY()
+
+    if prevScrY != p1.scrY:
+        p1.doScrUpdate = True
+
+    p1.loopScrTile(p1.checkCollision)
+    if p1.isColliding == True:
+        p1.collisionDown()
+        
+        
+
+    if p1.doScrUpdate:
+        p1.assignedScr.clearScr()
+        p1.loopScrTile(p1.putRotTileToScr)
+
+        print("\nTETRIS alpha\nplanned:\nnext tile prediction,\nscore,\nincreasing difficulty,\ndown momentup stop when\nplayer gets new tile\n",end='\n') #DEBUG - stays until score, nxt tile prediction & difficulty gets implemented
+        
+        p1.assignedScr.printScrBuffer()
+        p1.doScrUpdate = False
+        
+        print("wasDPNow",wasDPNow,"wasDPPrev",wasDPPrev) #DEBUG - break momentum
+        print(inp) #DEBUG - break momentum
+
+        
+    globals.calculateDeltaTime()
+
+    
+
+    
+
+'''for i in range(0,p1.assignedScr.width):
+    p1.assignedScr.scrBuffer[24][i] = globals.x
+
+for i in range(0,p1.assignedScr.width-2):
+    p1.assignedScr.scrBuffer[22][i] = globals.x
+
+p1.assignedScr.printScrBuffer()
+print("that was scr prior to clearing a line")
+    
+p1.attemptClearLine()
+
+p1.assignedScr.printScrBuffer()'''#DEBUG - clearing a full line
+    
+
+    
+
+
+
+
+
+    

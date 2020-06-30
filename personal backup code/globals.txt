@@ -1,0 +1,54 @@
+'''File used to declare common variables and functions,
+   aswell as to make porting code to different platorms
+   easier'''
+
+from os import system #for clearing the console
+
+#used to draw the screen
+global o #empty
+global x #wall
+global p #empty pivot
+global d #pivot that's also a wall
+o = '.'
+x = '#'
+p = 'p'
+d = 'd'
+
+#use: time.clock() * precision
+#converts the returned time in float to an int
+global precision
+precision = 10000
+global nameLength 
+nameLength = 6 #names are 5 chars
+
+pivotList: chr = [p, d]
+wallList: chr = [p, x]
+emptyList: chr = [d, o]
+
+def isInList(i: chr, lst: chr)->bool:
+    for el in lst:
+        if el == i:
+            return True
+    return False
+
+#for the windows console:
+'''if we have multiple screens, write here multiple write() methods
+   and attach each to a screen object.
+'''
+def write1(c):
+    print(c,end='')
+    pass
+def sequentialWrite1(s):
+    for el in s:
+        write1(el)
+    pass
+def clrScr():
+    system('cls')
+    pass
+
+
+
+
+
+
+    
